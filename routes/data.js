@@ -26,9 +26,21 @@ mongo.connect(url, function (error, conn) {
             })
     })
 
+    router.get('/question/get', function (req, res, next) {
+        conn.db("xotira").collection("question")
+            .find({subject: req.query.sub})
+            .toArray(function (error2, result) {
+                if (error2)
+                    next(error2)
+                res.send(result[req.query.id])
+                })
+
+    })
+
+
     router.get('/question/getall', function (req, res, next) {
         conn.db("xotira").collection("question")
-            .find({subject:req.query.sub})
+            .find({subject: req.query.sub})
             .toArray(function (error2, result) {
                 if (error2)
                     next(error2)
