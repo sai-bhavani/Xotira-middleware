@@ -17,8 +17,19 @@ bot.on('message', (msg) => {
             taking_test[chatId]['sub'] = msg.text;
         } else {
 
+            if (msg.text === taking_test[chatId]['answer']) {
+                bot.sendMessage(chatId, 'Correct Answer')
+                taking_test[chatId]['score']++
+                bot.sendMessage(chatId, 'score is ' + taking_test[chatId].score)
+            }
+            else {
+                bot.sendMessage(chatId, 'Wrong Answer')
+                bot.sendMessage(chatId, 'Correct Answer is ' + taking_test[chatId]['answer'])
+            }
+            taking_test[chatId].question++
         }
-        sendquestion(chatId, taking_test[chatId].sub, taking_test[chatId].question)
+
+        sendquestion(chatId, '' + taking_test[chatId].sub, taking_test[chatId].question)
     } else {
         var request = app.textRequest(msg.text, {
             sessionId: chatId
@@ -26,26 +37,23 @@ bot.on('message', (msg) => {
 
         request.on('response', function (response) {
             console.log(response);
-            if (response.result.contexts.length > 0) {
-                if (response.result.contexts[0].name === "test") {
-                    taking_test[chatId] = {
-                        'id': chatId,
-                        'question': '0',
-                        'score': 0
-                    };
-                    var options = [["M1"]];
-                    bot.sendMessage(chatId, "Select Subject", {
-                        "reply_markup": {
-                            "keyboard": options,
-                            "one_time_keyboard": true
-                        }
-                    });
-
-                    return;
-                }
+            if (response.result.fulfillment.speech === "/test") {
+                taking_test[chatId] = {
+                    'id': chatId,
+                    'question': 0,
+                    'score': 0
+                };
+                var options = [["M1"]];
+                bot.sendMessage(chatId, "Select Subject", {
+                    "reply_markup": {
+                        "keyboard": options,
+                        "one_time_keyboard": true
+                    }
+                });
             }
-            bot.sendMessage(chatId, response.result.fulfillment.speech);
-
+            else {
+                bot.sendMessage(chatId, response.result.fulfillment.speech);
+            }
         });
 
         request.on('error', function (error) {
@@ -81,8 +89,10 @@ function sendquestion(chatId, sub, id) {
                     "one_time_keyboard": true
                 }
             });
+            taking_test[chatId]['answer'] = body.options[body.correct - 1]
         } catch (err) {
-            bot.sendMessage(chatId, "error")
+            bot.sendMessage(chatId, "Thank you for taking test")
+            delete taking_test[chatId]
         }
     });
 }
