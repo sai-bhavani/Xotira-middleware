@@ -17,13 +17,15 @@ bot.onText(/\/echo (.+)/, (msg, match) => {
 
 bot.on('message', (msg) => {
     const chatId = msg.chat.id;
-    sendquestion(chatId, 'M1', '0');
+    // sendquestion(chatId, 'M1', '0');
+    console.log(message)
     var request = app.textRequest(message.text, {
         sessionId: chatId
     });
 
     request.on('response', function(response) {
         console.log(response);
+        bot.sendMessage(chatId, JSON.stringify(response));
     });
 
     request.on('error', function(error) {
