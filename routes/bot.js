@@ -6,33 +6,54 @@ var apiai = require('apiai');
 var app = apiai("33fbd700276b4bd98afed317698de423");
 
 const bot = new TelegramBot(token, {polling: true});
-
-bot.onText(/\/echo (.+)/, (msg, match) => {
-
-    const chatId = msg.chat.id;
-    const resp = match[1];
-
-    bot.sendMessage(chatId, resp);
-});
+const taking_test = {};
 
 bot.on('message', (msg) => {
     const chatId = msg.chat.id;
     // sendquestion(chatId, 'M1', '0');
-    console.log(message)
-    var request = app.textRequest(message.text, {
-        sessionId: chatId
-    });
+    console.log(taking_test)
+    if (taking_test.hasOwnProperty(chatId)) {
+        if (taking_test[chatId].hasOwnProperty("sub") === false) {
+            taking_test[chatId]['sub'] = msg.text;
+        } else {
 
-    request.on('response', function(response) {
-        console.log(response);
-        bot.sendMessage(chatId, JSON.stringify(response));
-    });
+        }
+        sendquestion(chatId, taking_test[chatId].sub, taking_test[chatId].question)
+    } else {
+        var request = app.textRequest(msg.text, {
+            sessionId: chatId
+        });
 
-    request.on('error', function(error) {
-        console.log(error);
-    });
+        request.on('response', function (response) {
+            console.log(response);
+            if (response.result.contexts.length > 0) {
+                if (response.result.contexts[0].name === "test") {
+                    taking_test[chatId] = {
+                        'id': chatId,
+                        'question': '0',
+                        'score': 0
+                    };
+                    var options = [["M1"]];
+                    bot.sendMessage(chatId, "Select Subject", {
+                        "reply_markup": {
+                            "keyboard": options,
+                            "one_time_keyboard": true
+                        }
+                    });
 
-    request.end();
+                    return;
+                }
+            }
+            bot.sendMessage(chatId, response.result.fulfillment.speech);
+
+        });
+
+        request.on('error', function (error) {
+            console.log(error);
+        });
+
+        request.end();
+    }
 });
 
 function sendquestion(chatId, sub, id) {
@@ -42,23 +63,27 @@ function sendquestion(chatId, sub, id) {
         qs: {sub: sub, id: id}
 
     };
+    console.log(options);
 
     request(options, function (error, response, body) {
         if (error) throw new Error(error);
 
-        body = JSON.parse(body);
-        var reply = body.question;
-        var options=[];
-        for (var op in body.options){
-            options.push([body.options[op]]);
-        }
-        bot.sendMessage(chatId, reply, {
-            "reply_markup": {
-                "keyboard": options,
-                "one_time_keyboard": true
+        try {
+            body = JSON.parse(body);
+            var reply = body.question;
+            var options = [];
+            for (var op in body.options) {
+                options.push([body.options[op]]);
             }
-        });
-        console.log(body);
+            bot.sendMessage(chatId, reply, {
+                "reply_markup": {
+                    "keyboard": options,
+                    "one_time_keyboard": true
+                }
+            });
+        } catch (err) {
+            bot.sendMessage(chatId, "error")
+        }
     });
 }
 
