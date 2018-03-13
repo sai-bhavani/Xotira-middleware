@@ -14,27 +14,33 @@ bot.onText(/\/echo (.+)/, (msg, match) => {
 
 bot.on('message', (msg) => {
     const chatId = msg.chat.id;
-    sendquestion(chatId, 'M1', '0');
+    // sendquestion(chatId, 'M1', '0');
+
+    let reply = msg.text;
+    bot.sendMessage(chatId, reply, {
+        "reply_markup": {
+            "keyboard": [["1. A"], ["2. B"], ["3. C"], ["4. D"]],
+            "one_timekeyboard": true
+        }
+    });
 });
- function sendquestion(chatId, sub, id) {
-     const options = {
-         method: 'GET',
-         url: 'http://localhost:3000/data/question/get',
-         qs: {sub: sub, id: id}
 
-     };
+function sendquestion(chatId, sub, id) {
+    const options = {
+        method: 'GET',
+        url: 'http://localhost:3000/data/question/get',
+        qs: {sub: sub, id: id}
 
-     request(options, function (error, response, body) {
-         if (error) throw new Error(error);
+    };
 
-         body=JSON.parse(body);
-         var reply={
-             text: body["question"]
-         }
-         bot.sendMessage(chatId,reply);
-         console.log(body);
-     });
- }
+    request(options, function (error, response, body) {
+        if (error) throw new Error(error);
+
+        body = JSON.parse(body);
+        console.log(body);
+    });
+}
+
 module.exports = bot;
 
 
