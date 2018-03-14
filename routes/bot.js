@@ -97,7 +97,4 @@ function sendquestion(chatId, sub, id) {
     });
 }
 
-module.exports = bot;
-
-
-
+module.exports = bot
