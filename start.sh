@@ -1,2 +1,2 @@
 npm install
-npm start > logout >> logerr &
+npm start > logout 2>logerr &
